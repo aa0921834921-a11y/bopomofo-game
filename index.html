@@ -3,88 +3,91 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>注音冒險世界-iPad終極版</title>
+<title>注音冒險世界-最終修復版</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Nunito:wght@400;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;background:#08111F;color:white;font-family:'Nunito',sans-serif;}
 #game{width:100%;height:100vh;position:relative;max-width:768px;margin:0 auto;}
 #intro{position:absolute;inset:0;background:#08111F;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;}
-.btn{padding:18px 50px;border:none;border-radius:50px;background:linear-gradient(135deg,#00FFB2,#7B61FF);font-size:1.4rem;font-weight:900;color:#08111F;cursor:pointer;box-shadow:0 0 20px rgba(0,255,178,0.4);}
-#worldmap, #lesson{position:absolute;inset:0;display:none;}
+.btn{padding:18px 50px;border:none;border-radius:50px;background:linear-gradient(135deg,#00FFB2,#7B61FF);font-size:1.4rem;font-weight:900;color:#08111F;cursor:pointer;box-shadow:0 0 20px rgba(0,255,178,0.4);-webkit-appearance:none;}
+#worldmap, #lesson{position:absolute;inset:0;display:none;z-index:50;}
 .star{position:absolute;width:2px;height:2px;background:white;border-radius:50%;animation:twinkle 2s infinite;}
 @keyframes twinkle{0%,100%{opacity:0.2}50%{opacity:1}}
-/* 簡單的地圖樣式 */
 .map-bg{position:absolute;inset:0;background:radial-gradient(circle at center,#142240,#08111F);}
-.zone{position:absolute;width:80px;height:80px;background:rgba(0,255,178,0.1);border:2px solid #00FFB2;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:2rem;}
+.zone{position:absolute;width:80px;height:80px;background:rgba(0,255,178,0.1);border:2px solid #00FFB2;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;}
 </style>
 </head>
 <body>
 <div id="game">
   <div id="intro">
     <h1 style="font-size:2.5rem;margin-bottom:10px;">注音冒險世界</h1>
-    <p style="color:#6A90B8;margin-bottom:40px;">iPad 專用修復版本</p>
-    <div id="intro-char" style="font-size:5rem;margin-bottom:20px;">🦊</div>
-    <button class="btn" onclick="forceStart()" ontouchstart="forceStart()">▶ 立即出發</button>
+    <p style="color:#6A90B8;margin-bottom:40px;">穩定修復版 (v4.0)</p>
+    <div style="font-size:5rem;margin-bottom:20px;">🦊</div>
+    <button class="btn" id="main-start-btn">▶ 立即出發</button>
   </div>
 
   <div id="worldmap">
     <div class="map-bg"></div>
-    <div style="position:relative;z-index:10;padding:20px;">
-      <h2>🗺 冒險地圖</h2>
-      <p>點擊地點開始挑戰</p>
-      <div class="zone" style="left:50px;top:150px;" onclick="enterZone(0)">🦇</div>
-      <div class="zone" style="right:50px;top:250px;" onclick="enterZone(1)">🦊</div>
+    <div style="position:relative;z-index:60;padding:20px;text-align:center;">
+      <h2 style="margin-top:20px;">🗺 選擇冒險地點</h2>
+      <div class="zone" style="left:20%;top:200px;" onclick="enterZone(0)">🦇</div>
+      <div class="zone" style="right:20%;top:300px;" onclick="enterZone(1)">🦊</div>
     </div>
   </div>
 
   <div id="lesson">
-    <div style="padding:40px;text-align:center;">
-      <div id="lesson-icon" style="font-size:6rem;margin-bottom:20px;"></div>
-      <h2 id="lesson-name" style="font-size:2rem;margin-bottom:30px;"></h2>
-      <button class="btn" onclick="goBack()">← 回到地圖</button>
+    <div style="padding:60px;text-align:center;position:relative;z-index:60;">
+      <div id="lesson-icon" style="font-size:7rem;margin-bottom:20px;"></div>
+      <h2 id="lesson-name" style="font-size:2.5rem;margin-bottom:40px;"></h2>
+      <button class="btn" onclick="goBack()">返回地圖</button>
     </div>
   </div>
 </div>
 
 <script>
-let zhVoice = null;
+// --- 核心邏輯 ---
+const startBtn = document.getElementById('main-start-btn');
+const intro = document.getElementById('intro');
+const worldmap = document.getElementById('worldmap');
 
-// 初始化語音
-function initVoice() {
-  const vs = window.speechSynthesis.getVoices();
-  zhVoice = vs.find(v => v.lang.includes('zh-TW')) || vs.find(v => v.lang.includes('zh')) || null;
+// 綁定點擊事件 (支援滑鼠與觸控)
+startBtn.addEventListener('click', forceStart);
+startBtn.addEventListener('touchstart', function(e){
+    e.preventDefault();
+    forceStart();
+}, {passive: false});
+
+function forceStart() {
+    console.log("Button clicked!");
+    
+    // 1. 優先切換畫面 (這一步絕對不能失敗)
+    intro.style.display = 'none';
+    worldmap.style.display = 'block';
+
+    // 2. 隨後嘗試解鎖語音
+    try {
+        window.speechSynthesis.cancel();
+        const dummy = new SpeechSynthesisUtterance(' ');
+        window.speechSynthesis.speak(dummy);
+        
+        const welcome = new SpeechSynthesisUtterance('出發冒險吧！');
+        welcome.lang = 'zh-TW';
+        welcome.rate = 0.9;
+        window.speechSynthesis.speak(welcome);
+    } catch (err) {
+        console.warn("Speech blocked, but game continues.");
+    }
 }
-window.speechSynthesis.onvoiceschanged = initVoice;
-initVoice();
 
 function speak(text) {
-  try {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'zh-TW';
-    u.rate = 0.8;
-    if (zhVoice) u.voice = zhVoice;
-    window.speechSynthesis.speak(u);
-  } catch(e) { console.error(e); }
-}
-
-// 強制啟動與語音解鎖
-function forceStart() {
-  // 1. 解鎖 iOS 語音引擎
-  window.speechSynthesis.cancel();
-  const dummy = new SpeechSynthesisUtterance(' ');
-  dummy.volume = 0;
-  window.speechSynthesis.speak(dummy);
-
-  // 2. 切換畫面
-  document.getElementById('intro').style.display = 'none';
-  document.getElementById('worldmap').style.display = 'block';
-  
-  // 3. 延遲說話確保穩定
-  setTimeout(() => speak("準備好冒險了嗎？"), 200);
+    try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'zh-TW';
+        u.rate = 0.8;
+        window.speechSynthesis.speak(u);
+    } catch(e) {}
 }
 
 const DATA = [
@@ -93,30 +96,28 @@ const DATA = [
 ];
 
 function enterZone(id) {
-  const item = DATA[id];
-  document.getElementById('worldmap').style.display = 'none';
-  document.getElementById('lesson').style.display = 'block';
-  document.getElementById('lesson-icon').textContent = item.ico;
-  document.getElementById('lesson-name').textContent = item.nm + ' (' + item.zh + ')';
-  
-  speak(item.nm);
-  setTimeout(() => speak(item.zh), 1000);
+    const item = DATA[id];
+    worldmap.style.display = 'none';
+    document.getElementById('lesson').style.display = 'block';
+    document.getElementById('lesson-icon').textContent = item.ico;
+    document.getElementById('lesson-name').textContent = item.nm + ' (' + item.zh + ')';
+    speak(item.nm);
+    setTimeout(() => speak(item.zh), 1000);
 }
 
 function goBack() {
-  document.getElementById('lesson').style.display = 'none';
-  document.getElementById('worldmap').style.display = 'block';
+    document.getElementById('lesson').style.display = 'none';
+    worldmap.style.display = 'block';
 }
 
-// 產生星星背景
-const intro = document.getElementById('intro');
-for(let i=0; i<30; i++) {
-  const s = document.createElement('div');
-  s.className = 'star';
-  s.style.left = Math.random()*100 + '%';
-  s.style.top = Math.random()*100 + '%';
-  s.style.animationDelay = Math.random()*2 + 's';
-  intro.appendChild(s);
+// 裝飾用星星
+for(let i=0; i<40; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = Math.random()*100 + '%';
+    s.style.top = Math.random()*100 + '%';
+    s.style.animationDelay = Math.random()*2 + 's';
+    intro.appendChild(s);
 }
 </script>
 </body>
