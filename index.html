@@ -3,149 +3,455 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>注音冒險世界-手機優化版</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="注音冒險">
+<title>注音冒險世界</title>
 <style>
-  /* 解決手機截掉一半的問題：使用百分比與彈性佈局 */
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { 
-    width: 100%; 
-    height: 100%; 
-    margin: 0; 
-    padding: 0; 
-    background: #08111F; 
-    color: white; 
-    font-family: sans-serif; 
-    overflow: hidden; 
-  }
-  #game { 
-    width: 100%; 
-    height: 100%; 
-    display: flex; 
-    flex-direction: column; 
-    position: relative;
-  }
-  #intro, #worldmap, #lesson {
-    flex: 1;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  #worldmap, #lesson { display: none; }
-
-  .btn { 
-    padding: 15px 40px; 
-    font-size: 1.2rem; 
-    background: #00FFB2; 
-    color: #08111F; 
-    border: none; 
-    border-radius: 50px; 
-    cursor: pointer; 
-    font-weight: bold;
-    margin-top: 20px;
-    box-shadow: 0 4px 15px rgba(0,255,178,0.3);
-  }
-  .zone { 
-    width: 70px; height: 70px; 
-    background: rgba(0,255,178,0.2); 
-    border: 2px solid #00FFB2; 
-    border-radius: 15px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-size: 1.8rem;
-    margin: 10px;
-  }
-  .map-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Nunito:wght@400;700;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:#08111F;}
+body{font-family:'Nunito',sans-serif;touch-action:manipulation;}
+#game{width:100%;height:100vh;position:relative;overflow:hidden;max-width:768px;margin:0 auto;}
+#intro{position:absolute;inset:0;background:#08111F;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;}
+.intro-stars{position:absolute;inset:0;overflow:hidden;}
+.star{position:absolute;width:2px;height:2px;background:white;border-radius:50%;animation:twinkle var(--d) infinite var(--delay);}
+@keyframes twinkle{0%,100%{opacity:0.2}50%{opacity:1}}
+.intro-logo{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:0.25em;color:#00FFB2;margin-bottom:8px;animation:fdin 1s 0.5s both;}
+.intro-title{font-size:2.4rem;font-weight:900;color:#fff;text-align:center;line-height:1.1;animation:fdin 1s 1s both;}
+.intro-title span{color:#00FFB2;}
+.intro-sub{font-size:0.9rem;color:#6A90B8;margin-top:10px;animation:fdin 1s 1.5s both;}
+.intro-char{font-size:5rem;animation:fl 3s ease-in-out infinite,fdin 1s 1.8s both;margin:16px 0;}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes fdin{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+#worldmap{position:absolute;inset:0;display:none;}
+.map-bg{position:absolute;inset:0;background:linear-gradient(160deg,#0A1628 0%,#0D2140 45%,#0A1628 100%);}
+.map-grid-svg{position:absolute;inset:0;opacity:0.05;}
+.map-hud{position:absolute;top:0;left:0;right:0;height:54px;background:rgba(8,17,31,0.88);border-bottom:1px solid rgba(0,255,178,0.15);display:flex;align-items:center;justify-content:space-between;padding:0 1rem;z-index:10;}
+.map-title{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:0.2em;color:#00FFB2;}
+.map-gems{display:flex;gap:4px;}
+.mgem{width:14px;height:14px;clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);background:rgba(255,255,255,0.1);}
+.mgem.on{background:#FFD93D;}
+.guide-bubble{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(13,24,41,0.95);border:1px solid rgba(0,255,178,0.3);border-radius:14px;padding:9px 16px;font-size:0.82rem;color:#E2F0FF;z-index:10;white-space:nowrap;}
+.zone{position:absolute;cursor:pointer;transition:transform 0.2s;}
+.zone:hover:not(.locked){transform:scale(1.1);}
+.zone.locked{opacity:0.4;cursor:default;pointer-events:none;}
+.path-line{position:absolute;background:rgba(0,255,178,0.18);border-radius:4px;pointer-events:none;}
+.path-dot{position:absolute;width:5px;height:5px;background:#00FFB2;border-radius:50%;pointer-events:none;animation:pdot 1.5s infinite;}
+@keyframes pdot{0%,100%{opacity:0.2}50%{opacity:1}}
+.zone-glow{position:absolute;width:12px;height:12px;border-radius:50%;top:3px;right:3px;animation:zglow 2s infinite;}
+@keyframes zglow{0%,100%{opacity:0.4;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+#lesson{position:absolute;inset:0;display:none;}
+.lesson-bg{position:absolute;inset:0;}
+.lesson-scene{position:absolute;inset:0;overflow:hidden;}
+.scene-ground{position:absolute;bottom:0;left:0;right:0;height:110px;}
+.guide-char{position:absolute;bottom:100px;left:20px;font-size:3.5rem;animation:fl 3s ease-in-out infinite;}
+.step-indicator{position:absolute;top:14px;right:14px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:0.12em;color:#3A5F88;z-index:20;}
+.particle{position:absolute;pointer-events:none;animation:prise var(--d) ease-out forwards;}
+@keyframes prise{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-90px)}}
+.sbg-jungle{background:linear-gradient(180deg,#0D2B1A,#1A4A2A 70%,#0D2B1A);}
+.sbg-desert{background:linear-gradient(180deg,#2A1808,#3D2A10 70%,#2A1808);}
+.sbg-city{background:linear-gradient(180deg,#1A1A2E,#2A2A42 70%,#1A1A2E);}
+.sbg-sky{background:linear-gradient(180deg,#0A1628,#142240 70%,#0A1628);}
+.sbg-ocean{background:linear-gradient(180deg,#081828,#0D2840 70%,#081828);}
+.sbg-snow{background:linear-gradient(180deg,#1A2A3A,#243444 70%,#1A2A3A);}
+.sg-jungle{background:linear-gradient(180deg,#1A5A2A,#0D3A18);border-top:2px solid #2A8A3A;}
+.sg-desert{background:linear-gradient(180deg,#6A4A20,#4A3010);border-top:2px solid #8A6A30;}
+.sg-city{background:linear-gradient(180deg,#2A2A3A,#1A1A2A);border-top:2px solid #4A4A6A;}
+.sg-sky{background:linear-gradient(180deg,#1A3050,#0D2040);border-top:2px solid #2A5080;}
+.sg-ocean{background:linear-gradient(180deg,#0D4070,#082840);border-top:2px solid #1A6090;}
+.sg-snow{background:linear-gradient(180deg,#3A4A5A,#2A3A4A);border-top:2px solid #5A7A8A;}
 </style>
 </head>
 <body>
-
 <div id="game">
-  <div id="intro">
-    <div style="font-size: 4rem;">🦊</div>
-    <h1 style="margin: 10px 0;">注音冒險世界</h1>
-    <p style="color: #6A90B8;">準備好開始了嗎？</p>
-    <button class="btn" onclick="startGame()">▶ 點我開始</button>
+<div id="intro">
+  <div class="intro-stars" id="stars-bg"></div>
+  <div class="intro-logo">C.L.A.D.E. // 注音偵探任務</div>
+  <div class="intro-title">注音<span>冒險</span><br>世界</div>
+  <div class="intro-sub">跟著偵探隊，環遊世界學注音！</div>
+  <div class="intro-char" id="intro-char">🦊</div>
+  <button id="start-btn" onclick="showMap()" style="display:inline-block;padding:14px 40px;border:none;border-radius:50px;background:linear-gradient(135deg,#00FFB2,#7B61FF);font-size:1.1rem;font-weight:900;color:#08111F;cursor:pointer;font-family:Nunito,sans-serif;">▶ 出發！</button>
+</div>
+<div id="worldmap">
+  <div class="map-bg"></div>
+  <svg class="map-grid-svg" width="100%" height="100%">
+    <defs><pattern id="iso" x="0" y="0" width="40" height="20" patternUnits="userSpaceOnUse">
+      <path d="M0 10 L20 0 L40 10 L20 20 Z" fill="none" stroke="#00FFB2" stroke-width="0.5"/>
+    </pattern></defs>
+    <rect width="100%" height="100%" fill="url(#iso)"/>
+  </svg>
+  <div class="map-hud">
+    <div class="map-title">🗺 世界地圖</div>
+    <div class="map-gems" id="map-gems"></div>
   </div>
-
-  <div id="worldmap">
-    <h2>🗺 選擇地點</h2>
-    <div class="map-container">
-      <div class="zone" onclick="enterZone(0)">🦇</div>
-      <div class="zone" onclick="enterZone(1)">🐰</div>
-    </div>
+  <div id="zones-container"></div>
+  <div class="guide-bubble">🦊 點發光的地點，開始任務！</div>
+</div>
+<div id="lesson">
+  <div class="lesson-bg" id="lbg"></div>
+  <div class="lesson-scene">
+    <div class="step-indicator" id="step-ind"></div>
+    <div class="guide-char" id="guide-ch"></div>
+    <div class="scene-ground" id="sground"></div>
+    <div id="card-area"></div>
+    <div id="particles"></div>
   </div>
-
-  <div id="lesson">
-    <div id="lesson-icon" style="font-size: 6rem;"></div>
-    <h2 id="lesson-name" style="font-size: 2rem; margin: 20px 0;"></h2>
-    <button class="btn" onclick="goBack()">返回地圖</button>
-  </div>
+</div>
 </div>
 
 <script>
-let preferredVoice = null;
-
-// 尋找最好聽的台灣配音員
-function loadVoices() {
-    const voices = window.speechSynthesis.getVoices();
-    // 優先序：台灣 Google 國語 > 台灣廣播等級配音 > 一般中文
-    preferredVoice = voices.find(v => v.lang === 'zh-TW' && v.name.includes('Google')) || 
-                     voices.find(v => v.lang === 'zh-TW') || 
-                     voices.find(v => v.lang.includes('zh-Hant')) ||
-                     voices.find(v => v.lang.startsWith('zh'));
+// ── 語音 ──
+let voiceOn=true,zhVoice=null;
+function initVoice(){
+  const vs=speechSynthesis.getVoices();
+  zhVoice=vs.find(v=>v.lang==='zh-TW')||vs.find(v=>v.lang==='zh-TW-Standard-A')||vs.find(v=>v.lang.startsWith('zh'))||null;
 }
+speechSynthesis.onvoiceschanged=initVoice;
+setTimeout(initVoice,500);
 
-window.speechSynthesis.onvoiceschanged = loadVoices;
-loadVoices();
-
-function speak(text) {
-    try {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.voice = preferredVoice;
-        u.lang = 'zh-TW';
-        u.rate = 0.7; // 語速調慢 (預設是1.0)
-        u.pitch = 1.1; // 音調稍微提高，聽起來比較親切
-        window.speechSynthesis.speak(u);
-    } catch(e) {}
+function speak(text,rate=0.85,pitch=1.1){
+  if(!voiceOn)return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='zh-TW';u.rate=rate;u.pitch=pitch;
+    if(zhVoice)u.voice=zhVoice;
+    speechSynthesis.speak(u);
+  }catch(e){}
 }
+const ZH_S={
+  'ㄅ':'ㄅㄛ','ㄆ':'ㄆㄛ','ㄇ':'ㄇㄛ','ㄈ':'ㄈㄛ',
+  'ㄉ':'ㄉㄜ','ㄊ':'ㄊㄜ','ㄋ':'ㄋㄜ','ㄌ':'ㄌㄜ',
+  'ㄍ':'ㄍㄜ','ㄎ':'ㄎㄜ','ㄏ':'ㄏㄜ',
+  'ㄐ':'ㄐㄧ','ㄑ':'ㄑㄧ','ㄒ':'ㄒㄧ',
+  'ㄓ':'ㄓ','ㄔ':'ㄔ','ㄕ':'ㄕ','ㄖ':'ㄖ',
+  'ㄗ':'ㄗ','ㄘ':'ㄘ','ㄙ':'ㄙ',
+  'ㄚ':'啊','ㄛ':'喔','ㄜ':'鵝','ㄞ':'哀','ㄟ':'欸',
+  'ㄠ':'凹','ㄡ':'歐','ㄢ':'安','ㄣ':'恩','ㄤ':'昂','ㄥ':'鞥','ㄦ':'兒',
+  'ㄧ':'一','ㄨ':'烏','ㄩ':'魚'
+};
+function speakItem(it){speak(`${it.nm}！`);setTimeout(()=>speak(ZH_S[it.zh]||it.zh,0.7,1.2),900);}
+function speakCorrect(){speak('答對了！太棒了！',1.0,1.3);}
+function speakWrong(c){speak(`哎呀！正確答案是 ${ZH_S[c]||c}，再試一次！`,0.9,1.0);}
 
-function startGame() {
-    // 解鎖語音
-    speak("出發囉！");
-    document.getElementById('intro').style.display = 'none';
-    document.getElementById('worldmap').style.display = 'flex';
-}
+// ── 樣式 ──
+const S={
+  startBtn:`display:inline-block;padding:14px 40px;border:none;border-radius:50px;background:linear-gradient(135deg,#00FFB2,#7B61FF);font-size:1.1rem;font-weight:900;color:#08111F;cursor:pointer;font-family:'Nunito',sans-serif;`,
+  backBtn:`position:absolute;top:12px;left:12px;padding:6px 12px;border:2px solid rgba(255,255,255,0.3);border-radius:8px;background:rgba(13,24,41,0.95);font-size:0.72rem;color:#CCC;cursor:pointer;font-family:'Orbitron',monospace;z-index:20;`,
+  volBtn:`position:absolute;top:12px;right:55px;padding:6px 9px;border:2px solid rgba(255,255,255,0.25);border-radius:8px;background:rgba(13,24,41,0.95);font-size:1rem;cursor:pointer;line-height:1;z-index:20;color:#FFF;`,
+  learnCard:`position:absolute;top:50%;left:50%;transform:translate(-50%,-58%);background:rgba(10,18,32,0.97);border:2px solid rgba(0,255,178,0.4);border-radius:22px;padding:22px 28px;text-align:center;min-width:260px;max-width:320px;width:88%;`,
+  sayBtn:`display:inline-block;padding:9px 20px;border:2px solid #00FFB2;border-radius:50px;background:#0A2018;font-size:0.85rem;font-weight:700;color:#00FFB2;cursor:pointer;font-family:'Nunito',sans-serif;`,
+  nextBtn:`display:inline-block;padding:10px 24px;border:none;border-radius:50px;background:linear-gradient(135deg,#00FFB2,#7B61FF);font-size:0.9rem;font-weight:900;color:#08111F;cursor:pointer;font-family:'Nunito',sans-serif;`,
+  quizCard:`position:absolute;top:50%;left:50%;transform:translate(-50%,-58%);background:rgba(10,18,32,0.97);border:2px solid rgba(123,97,255,0.5);border-radius:22px;padding:18px 20px;text-align:center;width:88%;max-width:320px;`,
+  optBtn:(i)=>{
+    const b=['rgba(0,255,178,0.8)','rgba(123,97,255,0.8)','rgba(255,107,107,0.8)','rgba(255,217,61,0.8)'];
+    const bg=['rgba(0,255,178,0.12)','rgba(123,97,255,0.12)','rgba(255,107,107,0.12)','rgba(255,217,61,0.12)'];
+    return `display:block;width:100%;padding:15px 4px;border:2px solid ${b[i]};border-radius:14px;background:${bg[i]};font-size:2rem;font-family:sans-serif;cursor:pointer;color:#FFFFFF;text-align:center;line-height:1.3;`;
+  },
+  retryBtn:`display:block;width:100%;margin-top:10px;padding:13px;border:2px solid #FF6B6B;border-radius:14px;background:rgba(255,107,107,0.12);font-size:0.9rem;font-weight:700;color:#FF6B6B;cursor:pointer;font-family:'Nunito',sans-serif;`,
+  doneBtn:`display:inline-block;margin-top:18px;padding:13px 34px;border:none;border-radius:50px;background:linear-gradient(135deg,#00FFB2,#7B61FF);color:#08111F;font-weight:900;font-size:0.95rem;cursor:pointer;font-family:'Nunito',sans-serif;`,
+};
+document.getElementById('start-btn').style.cssText=S.startBtn;
 
-const DATA = [
-  { nm: '蝙蝠', zh: 'ㄅ', ico: '🦇' },
-  { nm: '兔子', zh: 'ㄊ', ico: '🐰' }
+// ── 地點資料 ──
+const ZONES=[
+  {id:0,label:'洞穴基地',scene:'jungle',guide:'🦇',x:75,y:130,col:'#00FFB2',un:true,done:false,items:[
+    {zh:'ㄅ',ico:'🦇',nm:'蝙蝠',fact:'用超聲波飛行，從不迷路！'},
+    {zh:'ㄆ',ico:'🫧',nm:'泡泡',fact:'輕輕一吹就飛走！'},
+    {zh:'ㄇ',ico:'🐱',nm:'貓',fact:'喜歡睡覺，每天睡超過12小時！'},
+    {zh:'ㄈ',ico:'✈️',nm:'飛機',fact:'在天上飛，比汽車快好多倍！'},
+  ]},
+  {id:1,label:'草原水坑',scene:'desert',guide:'🦊',x:215,y:200,col:'#FFD93D',un:false,done:false,items:[
+    {zh:'ㄉ',ico:'🥕',nm:'蘿蔔',fact:'長在地底下，要挖出來才看得到！'},
+    {zh:'ㄊ',ico:'🐰',nm:'兔子',fact:'耳朵超長，可以聽到很遠的聲音！'},
+    {zh:'ㄋ',ico:'🐦',nm:'鳥',fact:'骨頭是空心的，所以才能飛上天！'},
+    {zh:'ㄌ',ico:'🦁',nm:'老虎',fact:'腳步很輕，走路幾乎沒有聲音！'},
+  ]},
+  {id:2,label:'城市總部',scene:'city',guide:'🐔',x:370,y:135,col:'#7B61FF',un:false,done:false,items:[
+    {zh:'ㄍ',ico:'🐶',nm:'狗',fact:'鼻子超厲害，可以聞到幾公里外！'},
+    {zh:'ㄎ',ico:'🦕',nm:'恐龍',fact:'在地球上生活了超過一億年！'},
+    {zh:'ㄏ',ico:'🦊',nm:'狐狸',fact:'就像動物謎案裡的琪特一樣聰明！'},
+  ]},
+  {id:3,label:'叢林秘境',scene:'jungle',guide:'🐆',x:295,y:310,col:'#FF9F43',un:false,done:false,items:[
+    {zh:'ㄐ',ico:'🐔',nm:'雞',fact:'每天都會生蛋，局長佩姬也是雞！'},
+    {zh:'ㄑ',ico:'⚽',nm:'球',fact:'是圓的，可以滾來滾去！'},
+    {zh:'ㄒ',ico:'🍉',nm:'西瓜',fact:'裡面是紅色的，甜甜的超好吃！'},
+  ]},
+  {id:4,label:'雪山基地',scene:'snow',guide:'🐆',x:490,y:175,col:'#74B9FF',un:false,done:false,items:[
+    {zh:'ㄓ',ico:'🕷️',nm:'蜘蛛',fact:'自己吐絲結網，網子黏黏的！'},
+    {zh:'ㄔ',ico:'🚗',nm:'車',fact:'有四個輪子，可以載人去很遠！'},
+    {zh:'ㄕ',ico:'🦁',nm:'獅子',fact:'是草原之王，叫聲超大聲！'},
+    {zh:'ㄖ',ico:'☀️',nm:'太陽',fact:'每天早上升起，給我們光和溫暖！'},
+  ]},
+  {id:5,label:'海洋深處',scene:'ocean',guide:'🦨',x:475,y:340,col:'#00B894',un:false,done:false,items:[
+    {zh:'ㄗ',ico:'🦟',nm:'蚊子',fact:'很小但聲音很煩，嗡嗡嗡！'},
+    {zh:'ㄘ',ico:'🌿',nm:'草',fact:'草地上有好多小蟲住在裡面！'},
+    {zh:'ㄙ',ico:'🍎',nm:'蘋果',fact:'有紅的、綠的，甜甜酸酸的！'},
+  ]},
+  {id:6,label:'天空島',scene:'sky',guide:'🦅',x:165,y:370,col:'#FD79A8',un:false,done:false,items:[
+    {zh:'ㄚ',ico:'🦆',nm:'鴨',fact:'走路搖搖擺擺，游泳超厲害！'},
+    {zh:'ㄛ',ico:'😮',nm:'哦！',fact:'嘴巴圓圓的，說「ㄛ」！'},
+    {zh:'ㄜ',ico:'🐊',nm:'鱷魚',fact:'牙齒超多超尖，是叢林老大！'},
+    {zh:'ㄞ',ico:'😲',nm:'哎！',fact:'跌倒的時候說「哎唷～」！'},
+    {zh:'ㄟ',ico:'🦔',nm:'刺蝟',fact:'身上有好多刺，摸不得！'},
+    {zh:'ㄠ',ico:'😸',nm:'貓叫',fact:'貓咪說「ㄠ～」是在跟你說話！'},
+    {zh:'ㄡ',ico:'🐵',nm:'猴子',fact:'最愛吃香蕉，在樹上盪來盪去！'},
+    {zh:'ㄢ',ico:'🍊',nm:'橘子',fact:'剝開香香的，一片一片超好吃！'},
+    {zh:'ㄣ',ico:'🌲',nm:'森林',fact:'森林裡住了好多動物！'},
+    {zh:'ㄤ',ico:'🦅',nm:'老鷹',fact:'在天空翱翔，眼睛可以看超遠！'},
+    {zh:'ㄥ',ico:'🐝',nm:'蜜蜂',fact:'嗡嗡嗡，採花蜜釀蜂蜜！'},
+    {zh:'ㄦ',ico:'👂',nm:'耳朵',fact:'讓我們聽到各種聲音！'},
+  ]},
+  {id:7,label:'介母星球',scene:'sky',guide:'🐟',x:595,y:275,col:'#A29BFE',un:false,done:false,items:[
+    {zh:'ㄧ',ico:'🐜',nm:'螞蟻',fact:'可以搬比自己重好幾倍的東西！'},
+    {zh:'ㄨ',ico:'🐸',nm:'青蛙',fact:'說「呱呱呱」，跳超高！'},
+    {zh:'ㄩ',ico:'🐟',nm:'魚',fact:'用鰓呼吸，住在水裡！'},
+  ]},
 ];
 
-function enterZone(id) {
-    const item = DATA[id];
-    document.getElementById('worldmap').style.display = 'none';
-    document.getElementById('lesson').style.display = 'flex';
-    document.getElementById('lesson-icon').textContent = item.ico;
-    document.getElementById('lesson-name').textContent = item.nm + ' (' + item.zh + ')';
-    
-    speak(item.nm);
-    setTimeout(() => speak(item.zh), 1200);
+const UNLOCK_MAP={0:[1],1:[2,3],2:[4],3:[5,6],4:[7]};
+const PATHS=[[0,1],[1,2],[1,3],[2,4],[3,5],[3,6],[4,7]];
+const ALL_ZH=['ㄅ','ㄆ','ㄇ','ㄈ','ㄉ','ㄊ','ㄋ','ㄌ','ㄍ','ㄎ','ㄏ','ㄐ','ㄑ','ㄒ','ㄓ','ㄔ','ㄕ','ㄖ','ㄗ','ㄘ','ㄙ','ㄚ','ㄛ','ㄜ','ㄞ','ㄟ','ㄠ','ㄡ','ㄢ','ㄣ','ㄤ','ㄥ','ㄦ','ㄧ','ㄨ','ㄩ'];
+
+let stars=0,curZone=null,curItemIdx=0,quizDone=false;
+
+function buildGems(){
+  const el=document.getElementById('map-gems');el.innerHTML='';
+  for(let i=0;i<5;i++){const g=document.createElement('div');g.className='mgem'+(i<stars?' on':'');el.appendChild(g);}
+}
+function addStar(){stars=Math.min(5,stars+1);buildGems();}
+
+function buildStars(){
+  const c=document.getElementById('stars-bg');
+  for(let i=0;i<80;i++){
+    const s=document.createElement('div');s.className='star';
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*3}s;--delay:${Math.random()*3}s;`;
+    c.appendChild(s);
+  }
+}
+buildStars();
+
+const iChars=['🦊','🐆','🐔','🦨','🦇','🦀'];
+let ci=0;
+setInterval(()=>{ci=(ci+1)%iChars.length;document.getElementById('intro-char').textContent=iChars[ci];},800);
+
+function showMap(){
+  try{speechSynthesis.cancel();}catch(e){}
+  document.getElementById('intro').style.display='none';
+  document.getElementById('lesson').style.display='none';
+  document.getElementById('worldmap').style.display='block';
+  buildGems();buildZones();
 }
 
-function goBack() {
-    document.getElementById('lesson').style.display = 'none';
-    document.getElementById('worldmap').style.display = 'flex';
+function buildZones(){
+  const c=document.getElementById('zones-container');c.innerHTML='';
+  PATHS.forEach(([a,b])=>{
+    const za=ZONES[a],zb=ZONES[b];
+    const x1=za.x+40,y1=za.y+40,x2=zb.x+40,y2=zb.y+40;
+    const len=Math.sqrt((x2-x1)**2+(y2-y1)**2);
+    const angle=Math.atan2(y2-y1,x2-x1)*180/Math.PI;
+    const line=document.createElement('div');line.className='path-line';
+    line.style.cssText=`width:${len}px;height:2px;left:${x1}px;top:${y1}px;transform-origin:0 50%;transform:rotate(${angle}deg);`;
+    c.appendChild(line);
+    for(let t=0.25;t<0.85;t+=0.25){
+      const dot=document.createElement('div');dot.className='path-dot';
+      dot.style.cssText=`left:${x1+(x2-x1)*t-2.5}px;top:${y1+(y2-y1)*t-2.5}px;animation-delay:${t*1.2}s;`;
+      c.appendChild(dot);
+    }
+  });
+  ZONES.forEach(z=>{
+    const el=document.createElement('div');
+    el.className='zone'+(z.un?'':' locked');
+    el.style.cssText=`left:${z.x}px;top:${z.y}px;width:80px;height:80px;`;
+    if(z.un) el.onclick=()=>enterZone(z.id);
+    const col=z.un?z.col:'#3A5F88';
+    const doneTag=z.done?`<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:#00FFB2;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#08111F;font-weight:900;">✓</div>`:'';
+    el.innerHTML=`
+      <svg width="80" height="70" viewBox="0 0 80 70">
+        <polygon points="40,2 78,22 78,48 40,68 2,48 2,22" fill="${col}1A" stroke="${col}" stroke-width="1.5"/>
+        <polygon points="40,10 70,26 70,44 40,60 10,44 10,26" fill="${col}0D" stroke="${col}44" stroke-width="1"/>
+      </svg>
+      ${doneTag}
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:1.9rem;${z.un?'animation:fl 3s ease-in-out infinite;':''}">${z.un?z.guide:'🔒'}</div>
+      <div style="position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:7px;color:${col};white-space:nowrap;">${z.label}</div>
+      ${z.un&&!z.done?`<div class="zone-glow" style="background:${z.col};"></div>`:''}
+    `;
+    c.appendChild(el);
+  });
 }
+
+function enterZone(zid){
+  curZone=ZONES[zid];curItemIdx=0;quizDone=false;
+  document.getElementById('worldmap').style.display='none';
+  document.getElementById('lesson').style.display='block';
+  document.getElementById('guide-ch').textContent=curZone.guide;
+  document.getElementById('lbg').className='lesson-bg sbg-'+curZone.scene;
+  document.getElementById('sground').className='scene-ground sg-'+curZone.scene;
+  speak(`進入${curZone.label}，開始任務！`,0.9,1.1);
+  showLearn();
+}
+
+function showLearn(){
+  quizDone=false;
+  const item=curZone.items[curItemIdx];
+  const total=curZone.items.length;
+  document.getElementById('step-ind').textContent=`${curItemIdx+1}/${total} 學習`;
+  setTimeout(()=>speakItem(item),400);
+  const ca=document.getElementById('card-area');ca.innerHTML='';
+  mkBackVol(ca);
+  const card=document.createElement('div');
+  card.style.cssText=S.learnCard;
+  card.innerHTML=`
+    <div style="font-size:4.5rem;margin-bottom:10px;">${item.ico}</div>
+    <div style="font-size:1.2rem;font-weight:900;color:#E2F0FF;margin-bottom:5px;">${item.nm}</div>
+    <div style="font-size:0.8rem;color:#6A90B8;line-height:1.55;max-width:210px;margin:0 auto 2px;">${item.fact}</div>
+  `;
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap;';
+  const sayBtn=document.createElement('button');
+  sayBtn.style.cssText=S.sayBtn;
+  sayBtn.innerHTML='🔊 再聽';
+  sayBtn.onclick=()=>speakItem(item);
+  row.appendChild(sayBtn);
+  const nextBtn=document.createElement('button');
+  nextBtn.style.cssText=S.nextBtn;
+  nextBtn.innerHTML='來挑戰 →';
+  nextBtn.onclick=()=>showQuiz(item);
+  row.appendChild(nextBtn);
+  card.appendChild(row);
+  ca.appendChild(card);
+}
+
+function showQuiz(item){
+  quizDone=false;
+  const total=curZone.items.length;
+  document.getElementById('step-ind').textContent=`${curItemIdx+1}/${total} 挑戰`;
+  setTimeout(()=>speak(`${item.nm}的注音是哪一個？`),300);
+  const opts=getOpts(item.zh);
+  const ca=document.getElementById('card-area');ca.innerHTML='';
+  mkBackVol(ca);
+  renderQuizCard(ca,item,opts);
+}
+
+function renderQuizCard(ca,item,opts){
+  const card=document.createElement('div');
+  card.style.cssText=S.quizCard;
+  card.innerHTML=`
+    <div style="font-size:3.8rem;margin-bottom:6px;">${item.ico}</div>
+    <div style="font-size:1rem;font-weight:700;color:#E2F0FF;margin-bottom:4px;">${item.nm} 的注音是？</div>
+    <div style="font-family:'Orbitron',monospace;font-size:8px;letter-spacing:0.12em;color:#4A6A88;margin-bottom:12px;">// 選出正確的注音符號</div>
+  `;
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;';
+  opts.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.id='qb'+o.charCodeAt(0);
+    b.textContent=o;
+    b.style.cssText=S.optBtn(i);
+    b.onclick=()=>{
+      speak(ZH_S[o]||o,0.8,1.2);
+      setTimeout(()=>checkQ(o,item,opts,card,grid),350);
+    };
+    grid.appendChild(b);
+  });
+  card.appendChild(grid);
+  const fb=document.createElement('div');
+  fb.id='qfb';
+  fb.style.cssText='min-height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;';
+  card.appendChild(fb);
+  ca.appendChild(card);
+}
+
+function checkQ(chosen,item,opts,card,grid){
+  if(quizDone)return;quizDone=true;
+  const cb=document.getElementById('qb'+chosen.charCodeAt(0));
+  const ab=document.getElementById('qb'+item.zh.charCodeAt(0));
+  const fb=document.getElementById('qfb');
+  grid.querySelectorAll('button').forEach(b=>b.style.pointerEvents='none');
+  if(chosen===item.zh){
+    cb.style.cssText+=';border-color:#00FFB2!important;background:rgba(0,255,178,0.25)!important;box-shadow:0 0 16px rgba(0,255,178,0.6);';
+    fb.innerHTML='<span style="font-size:1.8rem;">⭐⭐⭐</span><span style="font-family:Orbitron,monospace;font-size:9px;color:#00FFB2;letter-spacing:0.1em;">完全正確！</span>';
+    speakCorrect();addStar();spawnParticles();
+    setTimeout(()=>nextItem(),1400);
+  } else {
+    cb.style.cssText+=';border-color:#FF6B6B!important;background:rgba(255,107,107,0.18)!important;';
+    ab.style.cssText+=';border-color:#00FFB2!important;background:rgba(0,255,178,0.25)!important;box-shadow:0 0 16px rgba(0,255,178,0.6);';
+    fb.innerHTML=`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;"><span style="font-size:1.2rem;">❌</span><span style="font-family:Orbitron,monospace;font-size:8px;color:#FF6B6B;letter-spacing:0.08em;">正確答案是 ${item.zh}</span></div>`;
+    speakWrong(item.zh);
+    const retryBtn=document.createElement('button');
+    retryBtn.style.cssText=S.retryBtn;
+    retryBtn.innerHTML='🔄 我記住了，再試一次！';
+    retryBtn.onclick=()=>{
+      quizDone=false;
+      const newOpts=getOpts(item.zh);
+      const ca=document.getElementById('card-area');
+      ca.innerHTML='';
+      mkBackVol(ca);
+      document.getElementById('step-ind').textContent=`${curItemIdx+1}/${curZone.items.length} 挑戰`;
+      speak(`${item.nm}的注音是哪一個？`);
+      renderQuizCard(ca,item,newOpts);
+    };
+    fb.appendChild(retryBtn);
+  }
+}
+
+function nextItem(){
+  curItemIdx++;
+  if(curItemIdx>=curZone.items.length) showComplete();
+  else showLearn();
+}
+
+function getOpts(correctZh){
+  const wrong=ALL_ZH.filter(z=>z!==correctZh).sort(()=>Math.random()-0.5).slice(0,3);
+  return [correctZh,...wrong].sort(()=>Math.random()-0.5);
+}
+
+function showComplete(){
+  const toUnlock=UNLOCK_MAP[curZone.id]||[];
+  toUnlock.forEach(id=>ZONES[id].un=true);
+  ZONES[curZone.id].done=true;
+  speak(`${curZone.label}任務完成！超厲害！`,1.0,1.3);
+  spawnParticles();spawnParticles();
+  const ca=document.getElementById('card-area');ca.innerHTML='';
+  const box=document.createElement('div');
+  box.style.cssText='position:absolute;inset:0;background:rgba(8,17,31,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30;padding:20px;text-align:center;';
+  const unlockMsg=toUnlock.length>0?`<div style="font-size:0.82rem;color:#FFD93D;margin-top:8px;">🔓 新地點開放：${toUnlock.map(id=>ZONES[id].label).join('、')}</div>`:'';
+  box.innerHTML=`
+    <div style="font-size:3.5rem;animation:fl 1.5s ease-in-out infinite;">🏆</div>
+    <div style="font-size:1.3rem;font-weight:900;color:#00FFB2;margin:10px 0 4px;font-family:'Orbitron',monospace;letter-spacing:0.1em;">任務完成！</div>
+    <div style="font-size:0.82rem;color:#6A90B8;">${curZone.label} 全部通關！</div>
+    ${unlockMsg}
+  `;
+  const btn=document.createElement('button');
+  btn.textContent='← 回到地圖繼續冒險';
+  btn.style.cssText=S.doneBtn;
+  btn.onclick=showMap;
+  box.appendChild(btn);
+  ca.appendChild(box);
+}
+
+function mkBackVol(ca){
+  const back=document.createElement('button');
+  back.textContent='← 地圖';back.style.cssText=S.backBtn;
+  back.onclick=()=>{try{speechSynthesis.cancel();}catch(e){}showMap();};
+  ca.appendChild(back);
+  const vol=document.createElement('button');
+  vol.style.cssText=S.volBtn;vol.textContent=voiceOn?'🔊':'🔇';
+  vol.onclick=()=>{voiceOn=!voiceOn;vol.textContent=voiceOn?'🔊':'🔇';if(!voiceOn)try{speechSynthesis.cancel();}catch(e){}};
+  ca.appendChild(vol);
+}
+
+function spawnParticles(){
+  const c=document.getElementById('particles');
+  ['⭐','✨','💫','🌟','🎉'].forEach((e,i)=>{
+    const p=document.createElement('div');p.className='particle';
+    p.style.cssText=`left:${15+Math.random()*70}%;bottom:${120+Math.random()*80}px;font-size:${1+Math.random()*0.8}rem;--d:${0.8+Math.random()*0.5}s;animation-delay:${i*0.08}s;`;
+    p.textContent=e;c.appendChild(p);setTimeout(()=>p.remove(),1600);
+  });
+}
+
+showMap();
 </script>
-
 </body>
 </html>
