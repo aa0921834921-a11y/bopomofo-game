@@ -195,36 +195,34 @@ function speak(text, rate=0.68, pitch=1.08){
 }
 
 // 注音唸法對應
+// 注音符號 → 正式注音名稱字（台灣教學標準）
 const ZH_S={
-  'ㄅ':'ㄅㄛ','ㄆ':'ㄆㄛ','ㄇ':'ㄇㄛ','ㄈ':'ㄈㄛ',
-  'ㄉ':'ㄉㄜ','ㄊ':'ㄊㄜ','ㄋ':'ㄋㄜ','ㄌ':'ㄌㄜ',
-  'ㄍ':'ㄍㄜ','ㄎ':'ㄎㄜ','ㄏ':'ㄏㄜ',
-  'ㄐ':'ㄐㄧ','ㄑ':'ㄑㄧ','ㄒ':'ㄒㄧ',
-  'ㄓ':'ㄓ','ㄔ':'ㄔ','ㄕ':'ㄕ','ㄖ':'ㄖ',
-  'ㄗ':'ㄗ','ㄘ':'ㄘ','ㄙ':'ㄙ',
+  'ㄅ':'玻','ㄆ':'坡','ㄇ':'摸','ㄈ':'佛',
+  'ㄉ':'得','ㄊ':'特','ㄋ':'呢','ㄌ':'了',
+  'ㄍ':'哥','ㄎ':'科','ㄏ':'喝',
+  'ㄐ':'基','ㄑ':'欺','ㄒ':'希',
+  'ㄓ':'知','ㄔ':'吃','ㄕ':'詩','ㄖ':'日',
+  'ㄗ':'資','ㄘ':'雌','ㄙ':'思',
   'ㄚ':'啊','ㄛ':'喔','ㄜ':'鵝','ㄞ':'哀','ㄟ':'欸',
   'ㄠ':'凹','ㄡ':'歐','ㄢ':'安','ㄣ':'恩','ㄤ':'昂','ㄥ':'鞥','ㄦ':'兒',
   'ㄧ':'一','ㄨ':'烏','ㄩ':'魚'
 };
 
-// 「X的X」格式：用第一個字組成「蝙蝠的蝙」
+// 學習卡語音：「貓咪！貓咪的貓。」
 function speakItem(item){
-  // 第一個字的發音：「蝙蝠的蝙」
   const firstChar = item.nm.replace(/[！!？?。，、]/g,'')[0];
-  const phrase = `${item.nm}的${firstChar}`;
-  speak(phrase);
-  // 停頓後再唸注音
-  setTimeout(()=> speak(ZH_S[item.zh]||item.zh, 0.65, 1.05), 1400);
+  speak(item.nm);
+  setTimeout(()=> speak(`${item.nm}的${firstChar}`, 0.65, 1.08), 1000);
 }
 
-// 題目語音：「蝙蝠的蝙，注音是哪一個？」
+// 題目語音：「貓咪的貓，注音是哪一個？」
 function speakQuiz(item){
   const firstChar = item.nm.replace(/[！!？?。，、]/g,'')[0];
   speak(`${item.nm}的${firstChar}，注音是哪一個？`);
 }
 
 function speakCorrect(){ speak('答對了！太棒了！', 0.72, 1.1); }
-function speakWrong(c){  speak(`再試一次！`, 0.72, 1.0); }
+function speakWrong(){   speak('再試一次！', 0.72, 1.0); }
 
 // ══ 星星背景 ══
 function buildStarsBg(id){
@@ -280,40 +278,40 @@ const S={
 
 // ══ 資料 ══
 const ZONES=[
-  {id:0,label:'洞穴基地',scene:'jungle',guide:'🦇',x:75,y:130,col:'#00FFB2',un:true,done:false,items:[
+  {id:0,label:'洞穴基地',scene:'jungle',guide:'🦇',px:12,py:22,col:'#00FFB2',un:true,done:false,items:[
     {zh:'ㄅ',ico:'🦇',nm:'蝙蝠',fact:'用超聲波飛行，從不迷路！'},
     {zh:'ㄆ',ico:'🫧',nm:'泡泡',fact:'輕輕一吹就飛走！'},
     {zh:'ㄇ',ico:'🐱',nm:'貓咪',fact:'喜歡睡覺，每天睡超過12小時！'},
     {zh:'ㄈ',ico:'✈️',nm:'飛機',fact:'在天上飛，比汽車快好多倍！'},
   ]},
-  {id:1,label:'草原水坑',scene:'desert',guide:'🦊',x:215,y:200,col:'#FFD93D',un:false,done:false,items:[
+  {id:1,label:'草原水坑',scene:'desert',guide:'🦊',px:38,py:36,col:'#FFD93D',un:false,done:false,items:[
     {zh:'ㄉ',ico:'🥕',nm:'蘿蔔',fact:'長在地底下，要挖出來才看得到！'},
     {zh:'ㄊ',ico:'🐰',nm:'兔子',fact:'耳朵超長，可以聽到很遠的聲音！'},
     {zh:'ㄋ',ico:'🐦',nm:'鳥兒',fact:'骨頭是空心的，所以才能飛上天！'},
     {zh:'ㄌ',ico:'🦁',nm:'老虎',fact:'腳步很輕，走路幾乎沒有聲音！'},
   ]},
-  {id:2,label:'城市總部',scene:'city',guide:'🐔',x:370,y:135,col:'#7B61FF',un:false,done:false,items:[
+  {id:2,label:'城市總部',scene:'city',guide:'🐔',px:62,py:22,col:'#7B61FF',un:false,done:false,items:[
     {zh:'ㄍ',ico:'🐶',nm:'狗狗',fact:'鼻子超厲害，可以聞到幾公里外！'},
     {zh:'ㄎ',ico:'🦕',nm:'恐龍',fact:'在地球上生活了超過一億年！'},
     {zh:'ㄏ',ico:'🦊',nm:'狐狸',fact:'就像動物謎案裡的琪特一樣聰明！'},
   ]},
-  {id:3,label:'叢林秘境',scene:'jungle',guide:'🐆',x:295,y:310,col:'#FF9F43',un:false,done:false,items:[
+  {id:3,label:'叢林秘境',scene:'jungle',guide:'🐆',px:38,py:54,col:'#FF9F43',un:false,done:false,items:[
     {zh:'ㄐ',ico:'🐔',nm:'雞雞',fact:'每天都會生蛋，局長佩姬也是雞！'},
     {zh:'ㄑ',ico:'⚽',nm:'球球',fact:'是圓的，可以滾來滾去！'},
     {zh:'ㄒ',ico:'🍉',nm:'西瓜',fact:'裡面是紅色的，甜甜的超好吃！'},
   ]},
-  {id:4,label:'雪山基地',scene:'snow',guide:'🐆',x:490,y:175,col:'#74B9FF',un:false,done:false,items:[
+  {id:4,label:'雪山基地',scene:'snow',guide:'🐆',px:72,py:36,col:'#74B9FF',un:false,done:false,items:[
     {zh:'ㄓ',ico:'🕷️',nm:'蜘蛛',fact:'自己吐絲結網，網子黏黏的！'},
     {zh:'ㄔ',ico:'🚗',nm:'車車',fact:'有四個輪子，可以載人去很遠！'},
     {zh:'ㄕ',ico:'🦁',nm:'獅子',fact:'是草原之王，叫聲超大聲！'},
     {zh:'ㄖ',ico:'☀️',nm:'日日',fact:'太陽每天早上升起，給我們光和溫暖！'},
   ]},
-  {id:5,label:'海洋深處',scene:'ocean',guide:'🦨',x:475,y:340,col:'#00B894',un:false,done:false,items:[
+  {id:5,label:'海洋深處',scene:'ocean',guide:'🦨',px:62,py:58,col:'#00B894',un:false,done:false,items:[
     {zh:'ㄗ',ico:'🦟',nm:'蚊子',fact:'很小但聲音很煩，嗡嗡嗡！'},
     {zh:'ㄘ',ico:'🌿',nm:'草草',fact:'草地上有好多小蟲住在裡面！'},
     {zh:'ㄙ',ico:'🍎',nm:'蘋果',fact:'有紅的、綠的，甜甜酸酸的！'},
   ]},
-  {id:6,label:'天空島',scene:'sky',guide:'🦅',x:165,y:370,col:'#FD79A8',un:false,done:false,items:[
+  {id:6,label:'天空島',scene:'sky',guide:'🦅',px:18,py:66,col:'#FD79A8',un:false,done:false,items:[
     {zh:'ㄚ',ico:'🦆',nm:'鴨鴨',fact:'走路搖搖擺擺，游泳超厲害！'},
     {zh:'ㄛ',ico:'😮',nm:'喔喔',fact:'嘴巴圓圓的，說「ㄛ」！'},
     {zh:'ㄜ',ico:'🐊',nm:'鱷魚',fact:'牙齒超多超尖，是叢林老大！'},
@@ -327,7 +325,7 @@ const ZONES=[
     {zh:'ㄥ',ico:'🐝',nm:'蜜蜂',fact:'嗡嗡嗡，採花蜜釀蜂蜜！'},
     {zh:'ㄦ',ico:'👂',nm:'耳朵',fact:'讓我們聽到各種聲音！'},
   ]},
-  {id:7,label:'介母星球',scene:'sky',guide:'🐟',x:595,y:275,col:'#A29BFE',un:false,done:false,items:[
+  {id:7,label:'介母星球',scene:'sky',guide:'🐟',px:82,py:52,col:'#A29BFE',un:false,done:false,items:[
     {zh:'ㄧ',ico:'🐜',nm:'螞蟻',fact:'可以搬比自己重好幾倍的東西！'},
     {zh:'ㄨ',ico:'🐸',nm:'青蛙',fact:'說「呱呱呱」，跳超高！'},
     {zh:'ㄩ',ico:'🐟',nm:'魚魚',fact:'用鰓呼吸，住在水裡！'},
@@ -384,9 +382,21 @@ function showMap(){
 
 function buildZones(){
   const c=document.getElementById('zones-container'); c.innerHTML='';
+  const mapEl=document.getElementById('worldmap');
+  const W=mapEl.offsetWidth||window.innerWidth;
+  const H=mapEl.offsetHeight||window.innerHeight;
+  const SZ=64; // 六角形大小
+
+  // 計算實際像素座標（百分比換算）
+  ZONES.forEach(z=>{
+    z._x = Math.round(z.px/100*W - SZ/2);
+    z._y = Math.round(z.py/100*(H-80) + 54 - SZ/2);
+  });
+
   PATHS.forEach(([a,b])=>{
     const za=ZONES[a],zb=ZONES[b];
-    const x1=za.x+40,y1=za.y+40,x2=zb.x+40,y2=zb.y+40;
+    const x1=za._x+SZ/2, y1=za._y+SZ/2;
+    const x2=zb._x+SZ/2, y2=zb._y+SZ/2;
     const len=Math.sqrt((x2-x1)**2+(y2-y1)**2);
     const angle=Math.atan2(y2-y1,x2-x1)*180/Math.PI;
     const line=document.createElement('div'); line.className='path-line';
@@ -398,21 +408,22 @@ function buildZones(){
       c.appendChild(dot);
     }
   });
+
   ZONES.forEach(z=>{
     const el=document.createElement('div');
     el.className='zone'+(z.un?'':' locked');
-    el.style.cssText=`left:${z.x}px;top:${z.y}px;width:80px;height:80px;`;
+    el.style.cssText=`left:${z._x}px;top:${z._y}px;width:${SZ}px;height:${SZ}px;`;
     if(z.un) el.onclick=()=>enterZone(z.id);
     const col=z.un?z.col:'#3A5F88';
     const doneTag=z.done?`<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:#00FFB2;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#08111F;font-weight:900;box-shadow:0 0 8px #00FFB2;">✓</div>`:'';
     el.innerHTML=`
-      <svg width="80" height="70" viewBox="0 0 80 70">
+      <svg width="${SZ}" height="${SZ*0.87}" viewBox="0 0 80 70">
         <polygon points="40,2 78,22 78,48 40,68 2,48 2,22" fill="${col}18" stroke="${col}" stroke-width="1.5"/>
         <polygon points="40,10 70,26 70,44 40,60 10,44 10,26" fill="${col}0A" stroke="${col}44" stroke-width="1"/>
       </svg>
       ${doneTag}
-      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:1.9rem;${z.un?'animation:fl 3s ease-in-out infinite;':''}">${z.un?z.guide:'🔒'}</div>
-      <div style="position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:7px;color:${col};white-space:nowrap;">${z.label}</div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:1.6rem;${z.un?'animation:fl 3s ease-in-out infinite;':''}">${z.un?z.guide:'🔒'}</div>
+      <div style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:6px;color:${col};white-space:nowrap;">${z.label}</div>
       ${z.un&&!z.done?`<div class="zone-glow" style="background:${z.col};"></div>`:''}
     `;
     c.appendChild(el);
