@@ -25,7 +25,7 @@ body{font-family:'Nunito',sans-serif;touch-action:manipulation;}
 @keyframes zglow{0%,100%{opacity:0.4;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
 @keyframes prise{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-100px) scale(0.5)}}
 @keyframes bump{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-@keyframes slideup{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cardfade{from{opacity:0}to{opacity:1}}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
 
 /* HOMEPAGE */
@@ -105,7 +105,7 @@ body{font-family:'Nunito',sans-serif;touch-action:manipulation;}
     <div class="hp-hero-ring2"></div>
     <span class="hp-char" id="hp-char">🦊</span>
   </div>
-  <div class="hp-title">注音<em>冒險</em><br>世界</div>
+  <div class="hp-title">朱杰凱の注音<em>冒險</em><br>世界</div>
   <div class="hp-subtitle">跟著偵探隊，環遊世界學注音！</div>
   <div class="hp-stats">
     <div class="hp-stat"><div class="hp-stat-num">37</div><div class="hp-stat-lbl">注音符號</div></div>
@@ -163,26 +163,32 @@ let voiceOn=true, zhVoice=null;
 
 function initVoice(){
   const vs=speechSynthesis.getVoices();
-  // 優先順序：台灣女性 > 台灣中文 > 任何中文
+  if(!vs.length) return; // 還沒載入完，等 onvoiceschanged
+
+  // 1. 優先：台灣中文女性（iOS 常見名稱）
   zhVoice =
-    vs.find(v=>v.lang==='zh-TW' && /female|woman|mei|sin-ji|yu-shu|meijia|yating|zhiyu/i.test(v.name)) ||
+    vs.find(v=>v.lang==='zh-TW' && /meijia|mei-jia|sin-ji|yating|ya-ting|yu-shu|siri.*zh|zh.*siri/i.test(v.name)) ||
+  // 2. 任何台灣中文
     vs.find(v=>v.lang==='zh-TW') ||
-    vs.find(v=>v.lang==='zh-TW-Standard-A') ||
-    vs.find(v=>v.lang.startsWith('zh')) ||
+  // 3. 中文（香港或中國大陸）
+    vs.find(v=>/^zh/i.test(v.lang)) ||
     null;
 }
-speechSynthesis.onvoiceschanged=initVoice;
-setTimeout(initVoice,800);
 
-function speak(text, rate=0.68, pitch=1.05){
-  // rate 0.68 = 比正常速度慢約30%，適合小孩跟讀
+// iOS 需要等 voiceschanged，桌面瀏覽器通常同步就能取到
+if(speechSynthesis.getVoices().length) initVoice();
+speechSynthesis.onvoiceschanged = initVoice;
+setTimeout(initVoice, 500);
+setTimeout(initVoice, 1500); // 雙保險，iOS 有時候很慢
+
+function speak(text, rate=0.68, pitch=1.08){
   if(!voiceOn) return;
   try{
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang  = 'zh-TW';
-    u.rate  = rate;
-    u.pitch = pitch;
+    u.rate  = rate;   // 0.68 = 慢約30%，適合小孩
+    u.pitch = pitch;  // 1.08 = 稍微偏高，接近女聲
     if(zhVoice) u.voice = zhVoice;
     speechSynthesis.speak(u);
   }catch(e){}
@@ -258,10 +264,12 @@ setInterval(()=>{
 const S={
   backBtn:`position:absolute;top:12px;left:12px;padding:7px 13px;border:2px solid rgba(255,255,255,0.28);border-radius:10px;background:rgba(10,18,32,0.95);font-size:0.72rem;color:#CCC;cursor:pointer;font-family:'Orbitron',monospace;z-index:20;`,
   volBtn:`position:absolute;top:12px;right:12px;padding:7px 10px;border:2px solid rgba(255,255,255,0.22);border-radius:10px;background:rgba(10,18,32,0.95);font-size:1rem;cursor:pointer;line-height:1;z-index:20;color:#FFF;`,
-  learnCard:`position:absolute;top:50%;left:50%;transform:translate(-50%,-56%);background:rgba(8,16,30,0.97);border:2px solid rgba(0,255,178,0.4);border-radius:24px;padding:24px 26px;text-align:center;width:88%;max-width:330px;animation:slideup 0.3s ease;`,
+  learnCard:`position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none;animation:cardfade 0.25s ease;`,
+  learnInner:`display:inline-block;background:rgba(8,16,30,0.97);border:2px solid rgba(0,255,178,0.4);border-radius:24px;padding:24px 26px;text-align:center;width:88%;max-width:330px;pointer-events:auto;`,
   sayBtn:`display:inline-block;padding:9px 20px;border:2px solid #00FFB2;border-radius:50px;background:#071810;font-size:0.85rem;font-weight:700;color:#00FFB2;cursor:pointer;font-family:'Nunito',sans-serif;`,
   nextBtn:`display:inline-block;padding:10px 26px;border:none;border-radius:50px;background:linear-gradient(135deg,#00FFB2,#7B61FF);font-size:0.92rem;font-weight:900;color:#08111F;cursor:pointer;font-family:'Nunito',sans-serif;`,
-  quizCard:`position:absolute;top:50%;left:50%;transform:translate(-50%,-56%);background:rgba(8,16,30,0.97);border:2px solid rgba(123,97,255,0.5);border-radius:24px;padding:18px 18px;text-align:center;width:88%;max-width:330px;animation:slideup 0.3s ease;`,
+  quizCard:`position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none;animation:cardfade 0.25s ease;`,
+  quizInner:`display:inline-block;background:rgba(8,16,30,0.97);border:2px solid rgba(123,97,255,0.5);border-radius:24px;padding:18px 18px;text-align:center;width:88%;max-width:330px;pointer-events:auto;`,
   optBtn:(i)=>{
     const b=['rgba(0,255,178,0.75)','rgba(123,97,255,0.75)','rgba(255,107,107,0.75)','rgba(255,217,61,0.75)'];
     const bg=['rgba(0,255,178,0.1)','rgba(123,97,255,0.1)','rgba(255,107,107,0.1)','rgba(255,217,61,0.1)'];
@@ -431,15 +439,17 @@ function showLearn(){
   setTimeout(()=>speakItem(item),400);
   const ca=document.getElementById('card-area'); ca.innerHTML='';
   mkBackVol(ca);
-  const card=document.createElement('div');
-  card.style.cssText=S.learnCard;
 
-  // 顯示「X的X」提示文字
-  const firstChar=item.nm.replace(/[！!？?。，、]/g,'')[0];
+  // 外層：flex 置中容器（不會被動畫位移）
+  const wrap=document.createElement('div');
+  wrap.style.cssText=S.learnCard;
+
+  // 內層：真正的卡片
+  const card=document.createElement('div');
+  card.style.cssText=S.learnInner;
   card.innerHTML=`
     <div style="font-size:4.5rem;margin-bottom:10px;line-height:1;">${item.ico}</div>
-    <div style="font-size:1.25rem;font-weight:900;color:#E2F0FF;margin-bottom:2px;">${item.nm}</div>
-    
+    <div style="font-size:1.25rem;font-weight:900;color:#E2F0FF;margin-bottom:6px;">${item.nm}</div>
     <div style="font-size:0.8rem;color:#6A90B8;line-height:1.6;max-width:220px;margin:0 auto;">${item.fact}</div>
   `;
   const row=document.createElement('div');
@@ -455,7 +465,8 @@ function showLearn(){
   nextBtn.onclick=()=>showQuiz(item);
   row.appendChild(nextBtn);
   card.appendChild(row);
-  ca.appendChild(card);
+  wrap.appendChild(card);
+  ca.appendChild(wrap);
 }
 
 // ══ 答題卡 ══
@@ -470,11 +481,17 @@ function showQuiz(item){
 
 function renderQuizCard(ca,item,opts){
   const firstChar=item.nm.replace(/[！!？?。，、]/g,'')[0];
+
+  // 外層：flex 置中容器
+  const wrap=document.createElement('div');
+  wrap.style.cssText=S.quizCard;
+
+  // 內層：真正的卡片
   const card=document.createElement('div');
-  card.style.cssText=S.quizCard;
+  card.style.cssText=S.quizInner;
   card.innerHTML=`
     <div style="font-size:3.8rem;margin-bottom:6px;line-height:1;">${item.ico}</div>
-    <div style="font-size:1rem;font-weight:700;color:#E2F0FF;margin-bottom:2px;">${item.nm}的${firstChar}，注音是？</div>
+    <div style="font-size:1rem;font-weight:700;color:#E2F0FF;margin-bottom:4px;">${item.nm}的${firstChar}，注音是？</div>
     <div style="font-family:'Orbitron',monospace;font-size:7px;letter-spacing:0.12em;color:#3A5A78;margin-bottom:12px;">// 選出正確的注音符號</div>
   `;
   const grid=document.createElement('div');
@@ -485,9 +502,9 @@ function renderQuizCard(ca,item,opts){
     b.id='qb'+o.charCodeAt(0);
     b.textContent=o;
     b.style.cssText=S.optBtn(i);
-    b.dataset.orig=S.optBtn(i); // 記住原始樣式，答錯後恢復用
-    b.onclick=()=>checkQ(o,item,opts,grid,b.dataset.origIdx|0);
+    b.dataset.origStyle=S.optBtn(i);
     b.dataset.origIdx=i;
+    b.onclick=()=>checkQ(o,item,opts,grid,parseInt(b.dataset.origIdx));
     grid.appendChild(b);
   });
   card.appendChild(grid);
@@ -496,7 +513,8 @@ function renderQuizCard(ca,item,opts){
   fb.id='qfb';
   fb.style.cssText='min-height:30px;display:flex;align-items:center;justify-content:center;';
   card.appendChild(fb);
-  ca.appendChild(card);
+  wrap.appendChild(card);
+  ca.appendChild(wrap);
 }
 
 function checkQ(chosen,item,opts,grid,chosenIdx){
@@ -522,7 +540,7 @@ function checkQ(chosen,item,opts,grid,chosenIdx){
     grid.querySelectorAll('button').forEach(b=>b.style.pointerEvents='none');
     setTimeout(()=>{
       // 恢復按鈕可點，清掉紅色
-      cb.style.cssText=cb.dataset.orig||S.optBtn(chosenIdx);
+      cb.style.cssText=cb.dataset.origStyle||S.optBtn(chosenIdx);
       cb.id='qb'+chosen.charCodeAt(0); // 確保 id 還在
       fb.innerHTML='';
       grid.querySelectorAll('button').forEach(b=>b.style.pointerEvents='auto');
